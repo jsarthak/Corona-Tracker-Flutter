@@ -17,10 +17,9 @@ class _CoronaAppState extends State<CoronaApp> {
   @override
   void initState() {
     super.initState();
-    FlutterStatusbarcolor.setNavigationBarColor(Colors.grey.shade900);
-    //FlutterStatusbarcolor.setNavigationBarWhiteForeground(true);
-    FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
-    FlutterStatusbarcolor.setStatusBarColor(Colors.white);
+    FlutterStatusbarcolor.setNavigationBarColor(
+        Color.fromARGB(255, 44, 51, 61));
+    FlutterStatusbarcolor.setStatusBarColor(Color.fromARGB(255, 44, 51, 61));
   }
 
   @override
@@ -145,7 +144,7 @@ class _HomePageState extends State<HomePage>
             decoration: BoxDecoration(
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-              color: Colors.grey.shade900,
+              color: Theme.of(context).primaryColor,
             ),
             padding: EdgeInsets.only(left: 16),
             child: ListTile(
@@ -154,7 +153,7 @@ class _HomePageState extends State<HomePage>
                 color: Colors.white,
               ),
               title: Text(
-                "Statistics",
+                "Affected Countries",
                 style: TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
@@ -165,66 +164,110 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _getLowerLayer() {
+    double cardHeight = 180;
+    double borderRadius = 12;
     return Center(
       child: Container(
-        decoration: BoxDecoration(color: Colors.white),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        decoration: BoxDecoration(color: Theme.of(context).primaryColor),
+        child: ListView(
+          padding: EdgeInsets.all(8),
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, left: 16),
-              child: Text(
-                "Dashboard",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(
-              height: 24,
-            ),
             Row(children: [
               Expanded(
                 flex: 1,
                 child: Card(
+                  color: Color.fromARGB(255, 58, 161, 197),
                   elevation: 8.0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Center(
+                      borderRadius: BorderRadius.circular(borderRadius)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(borderRadius),
                     child: Container(
-                      height: 120,
+                      color: Colors.blue.shade600,
+                      height: cardHeight,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Text(
-                            "4545",
-                            style: TextStyle(fontSize: 64),
+                            "Infections",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                           ),
-                          Text("Cases")
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Center(
+                              child: Icon(
+                            Icons.trending_up,
+                            size: 18,
+                          )),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Text(
+                            "683641",
+                            style: TextStyle(fontSize: 32),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Text("20562 today")
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
+              SizedBox(
+                width: 4,
+              ),
               Expanded(
                 flex: 1,
                 child: Card(
+                  color: Color.fromARGB(255, 58, 161, 197),
                   elevation: 8.0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Center(
+                      borderRadius: BorderRadius.circular(borderRadius)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(borderRadius),
                     child: Container(
-                      height: 120,
+                      color: Colors.red.shade800,
+                      height: cardHeight,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Text(
-                            "4545",
-                            style: TextStyle(fontSize: 64),
+                            "Deaths",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                           ),
-                          Text("Cases")
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Center(
+                              child: Icon(
+                            Icons.trending_up,
+                            size: 18,
+                          )),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Text(
+                            "32144",
+                            style: TextStyle(fontSize: 32),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Text("20562 today")
                         ],
                       ),
                     ),
@@ -233,51 +276,104 @@ class _HomePageState extends State<HomePage>
               ),
             ]),
             SizedBox(
-              height: 24,
+              height: 12,
             ),
             Row(children: [
               Expanded(
                 flex: 1,
                 child: Card(
+                  color: Color.fromARGB(255, 58, 161, 197),
                   elevation: 8.0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Center(
+                      borderRadius: BorderRadius.circular(borderRadius)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(borderRadius),
                     child: Container(
-                      height: 120,
+                      color: Colors.green.shade600,
+                      height: cardHeight,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Text(
-                            "4545",
-                            style: TextStyle(fontSize: 64),
+                            "Recovered",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                           ),
-                          Text("Cases")
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Center(
+                              child: Icon(
+                            Icons.trending_up,
+                            size: 18,
+                          )),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Text(
+                            "683641",
+                            style: TextStyle(fontSize: 32),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Text("20562 today")
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
+              SizedBox(
+                width: 4,
+              ),
               Expanded(
                 flex: 1,
                 child: Card(
+                  color: Color.fromARGB(255, 58, 161, 197),
                   elevation: 8.0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Center(
+                      borderRadius: BorderRadius.circular(borderRadius)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(borderRadius),
                     child: Container(
-                      height: 120,
+                      color: Colors.yellow.shade800,
+                      height: cardHeight,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Text(
-                            "4545",
-                            style: TextStyle(fontSize: 64),
+                            "Critical",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                           ),
-                          Text("Cases")
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Center(
+                              child: Icon(
+                            Icons.trending_up,
+                            size: 18,
+                          )),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Text(
+                            "32144",
+                            style: TextStyle(fontSize: 32),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Text("20562 today")
                         ],
                       ),
                     ),
