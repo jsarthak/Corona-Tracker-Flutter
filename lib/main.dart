@@ -23,7 +23,7 @@ class _CoronaAppState extends State<CoronaApp> {
         Color.fromARGB(255, 44, 51, 61));
     FlutterStatusbarcolor.setStatusBarColor(Color.fromARGB(255, 44, 51, 61));
     _model.fetchAffectedCountries(clearExisting: true);
-    _model.fetchGeneralStats(clearExisting: true);
+    _model.fetchGlobalHistoricalData(clearExisting: true);
     super.initState();
   }
 

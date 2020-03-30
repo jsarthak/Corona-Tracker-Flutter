@@ -1,38 +1,42 @@
+import 'package:corona_tracker/models/countryinfo.dart';
+
 class AffectedCountry {
   final String country;
-  final String country_abbreviation;
-  final String total_cases;
-  final String new_cases;
-  final String total_deaths;
-  final String total_recovered;
-  final String active_cases;
-  final String serious_critical;
-  final String cases_per_mill_pop;
-  final String flag;
+  final String cases;
+  final String todayCases;
+  final String todayDeaths;
+  final String deaths;
+  final String recovered;
+  final String active;
+  final String critical;
+  final String casesPerOneMillion;
+  final String deathsPerOneMillion;
+  final CountryInfo countryInfo;
   AffectedCountry(
       {this.country,
-      this.country_abbreviation,
-      this.total_cases,
-      this.new_cases,
-      this.total_deaths,
-      this.total_recovered,
-      this.active_cases,
-      this.serious_critical,
-      this.cases_per_mill_pop,
-      this.flag});
+      this.cases,
+      this.todayCases,
+      this.todayDeaths,
+      this.deaths,
+      this.recovered,
+      this.active,
+      this.critical,
+      this.casesPerOneMillion,
+      this.deathsPerOneMillion,
+      this.countryInfo});
 
   factory AffectedCountry.fromJson(Map<String, dynamic> json) {
     return AffectedCountry(
-      country: json['country'],
-      country_abbreviation: json['country_abbreviation'],
-      total_cases: json['total_cases'],
-      new_cases: json['new_cases'],
-      total_deaths: json['total_deaths'],
-      total_recovered: json['total_recovered'],
-      active_cases: json['active_cases'],
-      serious_critical: json['serious_critical'],
-      cases_per_mill_pop: json['cases_per_mill_pop'],
-      flag: json['flag'],
-    );
+        country: json['country'],
+        cases: json['cases'].toString(),
+        todayCases: json['todayCases'].toString(),
+        todayDeaths: json['todayDeaths'].toString(),
+        deaths: json['deaths'].toString(),
+        recovered: json['recovered'].toString(),
+        active: json['active'].toString(),
+        critical: json['critical'].toString(),
+        casesPerOneMillion: json['casesPerOneMillion'].toString(),
+        deathsPerOneMillion: json['deathsPerOneMillion'].toString(),
+        countryInfo: CountryInfo.fromJson(json['countryInfo']));
   }
 }

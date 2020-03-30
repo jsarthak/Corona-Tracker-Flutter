@@ -1,8 +1,15 @@
+import 'dart:math';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:corona_tracker/models/global.dart';
+import 'package:corona_tracker/models/historical.dart';
+import 'package:corona_tracker/pages/country.dart';
 import 'package:corona_tracker/scoped_models/main.dart';
+import 'package:corona_tracker/widgets/circle_symbol_renderer.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 
 class HomePage extends StatefulWidget {
   final MainModel model;
@@ -122,9 +129,206 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  List<charts.Series<HistoricalGlobalData, DateTime>> _casesData() {
+    return [
+      new charts.Series(
+          id: "Cases",
+          data: widget.model.historicalGlobalData,
+          domainFn: (HistoricalGlobalData h, _) => DateTime.parse(h.date),
+          measureFn: (HistoricalGlobalData h, _) => int.parse(h.confimed)),
+    ];
+  }
+
+  List<charts.Series<HistoricalGlobalData, DateTime>> _deathsData() {
+    return [
+      new charts.Series(
+          id: "Deaths",
+          data: widget.model.historicalGlobalData,
+          domainFn: (HistoricalGlobalData h, _) => DateTime.parse(h.date),
+          colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
+          measureFn: (HistoricalGlobalData h, _) => int.parse(h.deaths)),
+    ];
+  }
+
+  List<charts.Series<LinScale, String>> _pieData() {
+    final data = [
+      new LinScale(
+          widget.model.globalData.total_active_cases -
+              widget.model.globalData.total_serious_cases,
+          "Mild",
+          charts.MaterialPalette.blue.shadeDefault),
+      new LinScale(
+          widget.model.globalData.total_recovered +
+              widget.model.globalData.total_deaths,
+          "Closed",
+          charts.MaterialPalette.pink.shadeDefault),
+      new LinScale(widget.model.globalData.total_active_cases, "Active",
+          charts.MaterialPalette.purple.shadeDefault),
+      new LinScale(widget.model.globalData.total_deaths, "Deaths",
+          charts.MaterialPalette.red.shadeDefault),
+      new LinScale(widget.model.globalData.total_recovered, "Recovered",
+          charts.MaterialPalette.green.shadeDefault),
+      new LinScale(widget.model.globalData.total_serious_cases, "Serious",
+          charts.MaterialPalette.yellow.shadeDefault),
+    ];
+    return [
+      new charts.Series<LinScale, String>(
+          data: data,
+          id: "summary",
+          measureFn: (LinScale numb, _) => numb.cases,
+          domainFn: (LinScale n, _) => n.title,
+          colorFn: (LinScale n, _) => n.color,
+          labelAccessorFn: (LinScale row, _) => '${row.cases}'),
+    ];
+  }
+
+  List<charts.Series<HistoricalGlobalData, DateTime>> _recoveredData() {
+    return [
+      new charts.Series(
+          id: "Recovered",
+          data: widget.model.historicalGlobalData,
+          colorFn: (_, __) => charts.MaterialPalette.green.shadeDefault,
+          domainFn: (HistoricalGlobalData h, _) => DateTime.parse(h.date),
+          measureFn: (HistoricalGlobalData h, _) => int.parse(h.recovered)),
+    ];
+  }
+
+  Widget pieChart() {
+    return Card(
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              height: 320,
+              width: MediaQuery.of(context).size.width,
+              padding: EdgeInsets.all(12),
+              child: Center(
+                child: new charts.PieChart(_pieData(),
+                    behaviors: [
+                      new charts.DatumLegend(
+                          position: charts.BehaviorPosition.bottom,
+                          desiredMaxRows: 2,
+                          desiredMaxColumns: 3,
+                          outsideJustification:
+                              charts.OutsideJustification.middleDrawArea),
+                    ],
+                    defaultRenderer:
+                        new charts.ArcRendererConfig(arcRendererDecorators: [
+                      charts.ArcLabelDecorator(
+                        labelPosition: charts.ArcLabelPosition.outside,
+                        leaderLineColor: charts.MaterialPalette.white,
+                        outsideLabelStyleSpec: charts.TextStyleSpec(
+                            fontSize: 12, color: charts.MaterialPalette.white),
+                      )
+                    ])),
+              ),
+            )));
+  }
+
+  Widget casesChart() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 250,
+          padding: EdgeInsets.all(12),
+          child: charts.TimeSeriesChart(
+            _casesData(),
+            behaviors: [
+              charts.PanAndZoomBehavior(),
+            ],
+            domainAxis: new charts.DateTimeAxisSpec(
+                renderSpec: new charts.GridlineRendererSpec(
+                    labelStyle: new charts.TextStyleSpec(
+                        fontSize: 10, color: charts.MaterialPalette.white),
+                    lineStyle: new charts.LineStyleSpec(
+                        color: charts.MaterialPalette.gray.shade700))),
+            primaryMeasureAxis: new charts.NumericAxisSpec(
+                renderSpec: new charts.GridlineRendererSpec(
+                    labelStyle: new charts.TextStyleSpec(
+                        fontSize: 10, color: charts.MaterialPalette.white),
+                    lineStyle: new charts.LineStyleSpec(
+                        color: charts.MaterialPalette.gray.shade700))),
+            animate: false,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget deathsChart() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 250,
+          padding: EdgeInsets.all(12),
+          child: charts.TimeSeriesChart(
+            _deathsData(),
+            behaviors: [
+              charts.PanAndZoomBehavior(),
+            ],
+            domainAxis: new charts.DateTimeAxisSpec(
+                renderSpec: new charts.GridlineRendererSpec(
+                    labelStyle: new charts.TextStyleSpec(
+                        fontSize: 10, color: charts.MaterialPalette.white),
+                    lineStyle: new charts.LineStyleSpec(
+                        color: charts.MaterialPalette.gray.shade700))),
+            primaryMeasureAxis: new charts.NumericAxisSpec(
+                renderSpec: new charts.GridlineRendererSpec(
+                    labelStyle: new charts.TextStyleSpec(
+                        fontSize: 10, color: charts.MaterialPalette.white),
+                    lineStyle: new charts.LineStyleSpec(
+                        color: charts.MaterialPalette.gray.shade700))),
+            animate: false,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget recoveredChart() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 250,
+          padding: EdgeInsets.all(4),
+          child: charts.TimeSeriesChart(
+            _recoveredData(),
+            behaviors: [
+              charts.PanAndZoomBehavior(),
+            ],
+            domainAxis: new charts.DateTimeAxisSpec(
+                renderSpec: new charts.GridlineRendererSpec(
+                    labelStyle: new charts.TextStyleSpec(
+                        fontSize: 10, color: charts.MaterialPalette.white),
+                    lineStyle: new charts.LineStyleSpec(
+                        color: charts.MaterialPalette.gray.shade700))),
+            primaryMeasureAxis: new charts.NumericAxisSpec(
+                renderSpec: new charts.GridlineRendererSpec(
+                    labelStyle: new charts.TextStyleSpec(
+                        fontSize: 10, color: charts.MaterialPalette.white),
+                    lineStyle: new charts.LineStyleSpec(
+                        color: charts.MaterialPalette.gray.shade700))),
+            animate: false,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _getLowerLayer() {
     double cardHeight = 180;
     double borderRadius = 12;
+
     return Center(
       child: Container(
         decoration: BoxDecoration(color: Theme.of(context).primaryColor),
@@ -165,7 +369,7 @@ class _HomePageState extends State<HomePage> {
                             height: 8,
                           ),
                           Text(
-                            widget.model.globalData.total_cases,
+                            widget.model.globalData.total_cases.toString(),
                             style: TextStyle(fontSize: 32),
                           ),
                           SizedBox(
@@ -174,7 +378,8 @@ class _HomePageState extends State<HomePage> {
                           SizedBox(
                             height: 8,
                           ),
-                          Text("20562 today")
+                          Text(widget.model.globalData.total_new_cases_today
+                              .toString())
                         ],
                       ),
                     ),
@@ -217,7 +422,7 @@ class _HomePageState extends State<HomePage> {
                             height: 8,
                           ),
                           Text(
-                            widget.model.globalData.death_cases,
+                            widget.model.globalData.total_deaths.toString(),
                             style: TextStyle(fontSize: 32),
                           ),
                           SizedBox(
@@ -226,7 +431,8 @@ class _HomePageState extends State<HomePage> {
                           SizedBox(
                             height: 8,
                           ),
-                          Text("20562 today")
+                          Text(widget.model.globalData.total_new_deaths_today
+                              .toString())
                         ],
                       ),
                     ),
@@ -271,7 +477,8 @@ class _HomePageState extends State<HomePage> {
                             height: 8,
                           ),
                           Text(
-                            widget.model.globalData.recovery_cases,
+                            //idget.model.globalData.recovery_cases,
+                            "5345",
                             style: TextStyle(fontSize: 32),
                           ),
                           SizedBox(
@@ -323,8 +530,8 @@ class _HomePageState extends State<HomePage> {
                             height: 8,
                           ),
                           Text(
-                            widget.model.globalData
-                                .critical_condition_active_cases,
+                            //widget.model.globalData.critical_condition_active_cases,
+                            "5454",
                             style: TextStyle(fontSize: 32),
                           ),
                           SizedBox(
@@ -341,6 +548,25 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ]),
+            SizedBox(
+              height: 12,
+            ),
+            pieChart(),
+            SizedBox(
+              height: 12,
+            ),
+            casesChart(),
+            SizedBox(
+              height: 12,
+            ),
+            deathsChart(),
+            SizedBox(
+              height: 12,
+            ),
+            recoveredChart(),
+            SizedBox(
+              height: 100,
+            )
           ],
         ),
       ),
@@ -422,81 +648,90 @@ class _HomePageState extends State<HomePage> {
                 scrollDirection: Axis.vertical,
                 itemCount: widget.model.allAffectedCounrties.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return Container(
-                    padding: EdgeInsets.only(
-                      bottom: 12,
-                      top: 12,
+                  return InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                          MaterialPageRoute(builder: (BuildContext context) {
+                        return CountryPage(widget.model);
+                      }));
+                    },
+                    child: Container(
+                      padding: EdgeInsets.only(
+                        bottom: 12,
+                        top: 12,
+                      ),
+                      color: (index % 2 == 0
+                          ? Colors.blueGrey.shade900
+                          : Colors.blueGrey.shade800),
+                      child: new Row(children: [
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Expanded(
+                            flex: 1,
+                            child: CachedNetworkImage(
+                              imageUrl: widget.model.allAffectedCounrties[index]
+                                  .countryInfo.flag,
+                              height: 12,
+                            )),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            widget.model.allAffectedCounrties[index].country,
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: <Widget>[
+                              Text(
+                                widget.model.allAffectedCounrties[index].cases
+                                    .toString(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              Text(
+                                "(+${widget.model.allAffectedCounrties[index].todayCases})",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: <Widget>[
+                              Text(
+                                widget.model.allAffectedCounrties[index].active
+                                    .toString(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            widget.model.allAffectedCounrties[index].recovered
+                                .toString(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            widget.model.allAffectedCounrties[index].deaths
+                                .toString(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ]),
                     ),
-                    color: (index % 2 == 0
-                        ? Colors.blueGrey.shade900
-                        : Colors.blueGrey.shade800),
-                    child: new Row(children: [
-                      SizedBox(
-                        height: 8,
-                      ),
-                      Expanded(
-                          flex: 1,
-                          child: CachedNetworkImage(
-                            imageUrl:
-                                widget.model.allAffectedCounrties[index].flag,
-                            height: 12,
-                          )),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          widget.model.allAffectedCounrties[index].country,
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: <Widget>[
-                            Text(
-                              widget.model.allAffectedCounrties[index]
-                                  .total_cases,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            Text(
-                              "(+${widget.model.allAffectedCounrties[index].new_cases})",
-                              textAlign: TextAlign.center,
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: <Widget>[
-                            Text(
-                              widget.model.allAffectedCounrties[index]
-                                  .active_cases,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          widget.model.allAffectedCounrties[index]
-                              .total_recovered,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          widget.model.allAffectedCounrties[index].total_deaths,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ]),
                   );
                 },
               ),
@@ -511,4 +746,14 @@ class _HomePageState extends State<HomePage> {
       );
     }
   }
+}
+
+class LinScale {
+  final int cases;
+
+  final String title;
+
+  final charts.Color color;
+
+  LinScale(this.cases, this.title, this.color);
 }
