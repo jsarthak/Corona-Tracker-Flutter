@@ -25,6 +25,10 @@ dependencies:
   cupertino_icons: ^0.1.2
   rubber: ^0.4.0
   flutter_statusbarcolor: ^0.2.1
+  solid_bottom_sheet: ^0.1.9
+  http: 0.12.0+4
+  scoped_model: 1.0.1
+  cached_network_image: 2.0.0
 
 
 dev_dependencies:
