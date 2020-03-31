@@ -1,5 +1,6 @@
 import 'package:corona_tracker/models/global.dart';
 import 'package:corona_tracker/models/historical.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -24,25 +25,6 @@ mixin GeneralStatsModel on ConnectedModels {
   GlobalData get globalData {
     return _globalData;
   }
-
-//   Future<Null> fetchGeneralStats({clearExisting = true}) {
-//     _isLoadingGeneralStats = true;
-//     notifyListeners();
-//     return http
-//         .get("https://thevirustracker.com/free-api?global=stats")
-//         .then<Null>((http.Response response) {
-//       Map<String, dynamic> data = jsonDecode(response.body);
-//       var global = data['results'][0];
-//       final GlobalData t = GlobalData.fromJson(global);
-//       _globalData = t;
-//       _isLoadingGeneralStats = false;
-//       notifyListeners();
-//     }).catchError((error) {
-//       _isLoadingGeneralStats = false;
-//       notifyListeners();
-//       return;
-//     });
-//   }
 }
 
 mixin HistoricalData on ConnectedModels {
@@ -60,10 +42,11 @@ mixin HistoricalData on ConnectedModels {
       _historicalGlobalData = [];
     }
     notifyListeners();
-    return http
-        .get("https://covidapi.info/api/v1/global/count")
-        .then<Null>((http.Response response) {
-      final List<HistoricalGlobalData> historicalGlobalData1 = [];
+    String url = "https://covidapi.info/api/v1/global/count";
+    return DefaultCacheManager().getSingleFile(url).then<Null>((file) async {
+      if (file != null && await file.exists()){
+        var response = http.Response(await file.readAsString(),200);
+        final List<HistoricalGlobalData> historicalGlobalData1 = [];
 
       Map<String, dynamic> historicalData = jsonDecode(response.body)['result'];
       if (historicalData == null) {
@@ -79,12 +62,14 @@ mixin HistoricalData on ConnectedModels {
       _historicalGlobalData = historicalGlobalData1;
       _isLoadingHistorical = false;
       notifyListeners();
-    }).catchError((error) {
-      _isLoadingHistorical = false;
+      }
+    }).catchError((error){
+ _isLoadingHistorical = false;
       notifyListeners();
       print(error);
       return;
     });
+    
   }
 }
 
