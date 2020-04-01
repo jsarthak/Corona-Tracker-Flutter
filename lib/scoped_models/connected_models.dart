@@ -1,6 +1,6 @@
 import 'package:corona_tracker/models/global.dart';
 import 'package:corona_tracker/models/historical.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:intl/intl.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
@@ -11,9 +11,13 @@ import '../models/country.dart';
 mixin ConnectedModels on Model {
   List<AffectedCountry> _affectedCountries = [];
   List<HistoricalGlobalData> _historicalGlobalData = [];
+  List<HistoricalGlobalData> _countryHistoricalData = [];
   GlobalData _globalData;
+  bool _isLoadingCountryHistorical = false;
   bool _isLoadingHistorical = false;
   bool _isLoadingAffectedCountries = false;
+  
+
   String _selCountry;
 }
 
@@ -25,6 +29,8 @@ mixin GeneralStatsModel on ConnectedModels {
   GlobalData get globalData {
     return _globalData;
   }
+
+  
 }
 
 mixin HistoricalData on ConnectedModels {
@@ -32,8 +38,56 @@ mixin HistoricalData on ConnectedModels {
     return _isLoadingHistorical;
   }
 
+  bool get isLoadingCountryHistorical {
+    return _isLoadingCountryHistorical;
+  }
+
   List<HistoricalGlobalData> get historicalGlobalData {
     return _historicalGlobalData;
+  }
+
+  List<HistoricalGlobalData> get historicalCountryData{
+    return _countryHistoricalData;
+  }
+
+  Future<Null> fetchCountryHistoricalData(String countryName,{clearExisting = true}){
+    var formatter = new DateFormat('yyyy-MM-dd');
+    String date = formatter.format(DateTime.now());
+    _isLoadingCountryHistorical = true;
+    if (clearExisting){
+      _countryHistoricalData= [];
+    }
+    notifyListeners();
+        String url = "https://covidapi.info/api/v1/country/$countryName/timeseries/2020-01-21/$date";
+        return http.get(url).then<Null>((http.Response response) async {
+     
+        final List<HistoricalGlobalData> historicalGlobalData1 = [];
+      List<dynamic> historicalData = jsonDecode(response.body)['result'];
+      
+      if (historicalData == null) {
+        _isLoadingCountryHistorical = false;
+        notifyListeners();
+        return;
+      }
+      for (Map<String, dynamic> h in historicalData){
+           final HistoricalGlobalData d = HistoricalGlobalData(confimed: h['confirmed'].toString(),
+        date: h['date'].toString(),
+        deaths: h['deaths'].toString(),
+        recovered: h['recovered'].toString());
+        historicalGlobalData1.add(d);
+
+      }
+      _countryHistoricalData = historicalGlobalData1;
+      _isLoadingCountryHistorical = false;
+      notifyListeners();
+      
+    }).catchError((error){
+ _isLoadingCountryHistorical = false;
+      notifyListeners();
+      print(error);
+      return;
+    }); 
+
   }
 
   Future<Null> fetchGlobalHistoricalData({clearExisting = true}) {
@@ -43,9 +97,8 @@ mixin HistoricalData on ConnectedModels {
     }
     notifyListeners();
     String url = "https://covidapi.info/api/v1/global/count";
-    return DefaultCacheManager().getSingleFile(url).then<Null>((file) async {
-      if (file != null && await file.exists()){
-        var response = http.Response(await file.readAsString(),200);
+    return http.get(url).then<Null>((http.Response response) async {
+     
         final List<HistoricalGlobalData> historicalGlobalData1 = [];
 
       Map<String, dynamic> historicalData = jsonDecode(response.body)['result'];
@@ -62,7 +115,7 @@ mixin HistoricalData on ConnectedModels {
       _historicalGlobalData = historicalGlobalData1;
       _isLoadingHistorical = false;
       notifyListeners();
-      }
+      
     }).catchError((error){
  _isLoadingHistorical = false;
       notifyListeners();

@@ -1,8 +1,16 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:corona_tracker/models/country.dart';
 import 'package:corona_tracker/models/historical.dart';
+import 'package:corona_tracker/models/linscale.dart';
+import 'package:corona_tracker/pages/about.dart';
 import 'package:corona_tracker/pages/country.dart';
 import 'package:corona_tracker/scoped_models/main.dart';
+import 'package:corona_tracker/widgets/timechart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:corona_tracker/utils.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
@@ -62,13 +70,12 @@ class _HomePageState extends State<HomePage> {
           ),
           drawer: Container(
             color: Theme.of(context).primaryColorDark,
-            width: MediaQuery.of(context).size.width * 0.6,
+            width: MediaQuery.of(context).size.width * 0.65,
             child: Drawer(
               elevation: 8.0,
               child: Container(
                 color: Theme.of(context).primaryColorDark,
                 child: ListView(
-                  // Important: Remove any padding from the ListView.
                   padding: EdgeInsets.zero,
                   children: <Widget>[
                     Container(
@@ -77,41 +84,64 @@ class _HomePageState extends State<HomePage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
-                          CircleAvatar(
-                              radius: 64,
-                              child: Icon(
-                                Icons.supervised_user_circle,
-                                size: 128,
-                              )),
+                           SizedBox(
+                            height: 24,
+                          ),
+                          Image(
+                            height: 120,
+                            image: AssetImage("assets/launcher/launcher.png"),
+                            
+                          ),
+                          SizedBox(
+                            height: 24,
+                          ),
                           Text(
                             "Corona Tracker",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
-                                color: Colors.grey.shade900),
+                                color: Colors.white70),
                           )
                         ],
                       ),
                     ),
-                    ListTile(
-                      leading: Icon(Icons.dashboard),
-                      title: Text('DashBoard'),
-                      onTap: () {
-                        // Update the state of the app
-                        // ...
-                        // Then close the drawer
-                        Navigator.pop(context);
-                      },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal:12,vertical: 8),
+                      child: Card(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        color: Theme.of(context).primaryColor,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: ListTile(
+                            leading: Icon(Icons.info),
+                            title: Text('Information'),
+                            onTap: () {
+                              
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      ),
                     ),
-                    ListTile(
-                      title: Text('Item 2'),
-                      onTap: () {
-                        // Update the state of the app
-                        // ...
-                        // Then close the drawer
-                        Navigator.pop(context);
-                      },
-                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal:12,vertical: 8),
+                      child: Card(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        color: Theme.of(context).primaryColor,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: ListTile(
+                            leading: Icon(Icons.info),
+                            title: Text('About'),
+                            onTap: () {
+                              
+                            Navigator.push(context, MaterialPageRoute(builder:(context) {
+                              return AboutPage();
+                            }));
+                            },
+                          ),
+                        ),
+                      ),)
                   ],
                 ),
               ),
@@ -147,6 +177,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<charts.Series<HistoricalGlobalData, DateTime>> _deathsData() {
+    
     return [
       new charts.Series(
           id: "Deaths",
@@ -154,6 +185,38 @@ class _HomePageState extends State<HomePage> {
           domainFn: (HistoricalGlobalData h, _) => DateTime.parse(h.date),
           colorFn: (_, __) => charts.MaterialPalette.red.shadeDefault,
           measureFn: (HistoricalGlobalData h, _) => int.parse(h.deaths)),
+    ];
+  }
+  List<charts.Series<HistoricalGlobalData, String>> _lastWeekData() {
+int l = widget.model.historicalGlobalData.length;
+      List<HistoricalGlobalData> lastWeek = [];
+      for (int i =0;i<7;i++){
+
+
+ HistoricalGlobalData d1 = widget.model.historicalGlobalData[l-1-i];
+ HistoricalGlobalData d2 = widget.model.historicalGlobalData[l-2-i];
+
+        int n = int.parse(d1.confimed);
+         int r = int.parse( d2.confimed);
+                 int c =( n-r);
+
+        HistoricalGlobalData d = HistoricalGlobalData(confimed:c.toString(),date: d1.date,recovered:d1.recovered,deaths: d1.deaths);
+
+
+        lastWeek.add(d);
+      }
+      List<HistoricalGlobalData> lastWeek2= lastWeek.reversed.toList();
+var formatter = new DateFormat('MMM dd');
+    return [
+      new charts.Series(
+          id: "lastWeek",
+          data: lastWeek2,
+          domainFn: (HistoricalGlobalData h, _) =>formatter.format(DateTime.parse(h.date)),
+
+          colorFn: (HistoricalGlobalData h,_)=>charts.MaterialPalette.blue.shadeDefault,
+          measureFn: (HistoricalGlobalData h, _) => int.parse(h.confimed)),
+          
+    
     ];
   }
 
@@ -200,6 +263,28 @@ class _HomePageState extends State<HomePage> {
     ];
   }
 
+  List<charts.Series<AffectedCountry, String>> _mostAffectedCountry(){
+      List<AffectedCountry> mostAffected = [];
+      for (int i =0;i<7;i++){
+
+        mostAffected.add(widget.model.allAffectedCounrties[i]);
+
+      }
+    return [
+      new charts.Series(
+          id: "mostAffected",
+          data: mostAffected,
+          domainFn: (AffectedCountry h, _) =>h.country,
+
+          colorFn: (AffectedCountry h,_)=>charts.MaterialPalette.blue.shadeDefault,
+          measureFn: (AffectedCountry h, _) => int.parse(h.cases)),
+          
+    
+    ];
+  }
+
+
+
   Widget pieChart() {
     return Card(
         elevation: 8,color:Theme.of(context).primaryColor,
@@ -243,11 +328,71 @@ class _HomePageState extends State<HomePage> {
 
   double chartHeight = 360;
 
-  
+Widget mostAffected(){
+     return Card(
+      elevation: 8,
+      color:Theme.of(context).primaryColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: EdgeInsets.only(bottom:12),
+          child: Column(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.only(top:16,bottom: 8),
+                child: Center(child: Text("Most affected",style:TextStyle(fontWeight: FontWeight.bold, fontSize: 18)))),
+              Container(
+                height: 240,
+                padding: EdgeInsets.all(12),
+                child: charts.BarChart(
+                  _mostAffectedCountry(),
+                  animate: false,
+                     domainAxis: new charts.OrdinalAxisSpec(
+          renderSpec: new charts.SmallTickRendererSpec(
 
-  Widget casesChart() {
-   
-   
+              // Tick and Label styling here.
+              labelStyle: new charts.TextStyleSpec(
+                  fontSize: 10, // size in Pts.
+                  color: charts.MaterialPalette.white),
+
+              // Change the line colors to match text color.
+              lineStyle: new charts.LineStyleSpec(
+                  color: charts.MaterialPalette.gray.shade700))),
+
+      /// Assign a custom style for the measure axis.
+      primaryMeasureAxis: new charts.NumericAxisSpec(
+        tickFormatterSpec: new charts.BasicNumericTickFormatterSpec.fromNumberFormat(
+                      NumberFormat.compact()
+                    ),
+          renderSpec: new charts.GridlineRendererSpec(
+
+              // Tick and Label styling here.
+              labelStyle: new charts.TextStyleSpec(
+                  fontSize: 10, // size in Pts.
+                  color: charts.MaterialPalette.white),
+
+              // Change the line colors to match text color.
+              lineStyle: new charts.LineStyleSpec(
+                  color: charts.MaterialPalette.gray.shade700))),
+                      
+                
+                  defaultRenderer: charts.BarRendererConfig(
+
+                    cornerStrategy: const charts.ConstCornerStrategy(16)),
+                  
+
+               
+                )
+              ),
+              
+            ],
+          ),
+        ),
+      ),
+    );
+}
+Widget weekChart() {
     return Card(
       elevation: 8,
       color:Theme.of(context).primaryColor,
@@ -260,32 +405,52 @@ class _HomePageState extends State<HomePage> {
             children: <Widget>[
               Container(
                 padding: EdgeInsets.only(top:16,bottom: 8),
-                child: Center(child: Text("Total Cases",style:TextStyle(fontWeight: FontWeight.bold, fontSize: 18)))),
+                child: Center(child: Text("Past 7 days",style:TextStyle(fontWeight: FontWeight.bold, fontSize: 18)))),
 
    
               Container(
-                height: chartHeight,
+                height: 240,
                 padding: EdgeInsets.all(12),
-                child: charts.TimeSeriesChart(
-                  _casesData(),
-                  behaviors: [
-                    charts.PanAndZoomBehavior(),
-                  ],
-                   
-                  domainAxis: new charts.DateTimeAxisSpec(
-                      renderSpec: new charts.GridlineRendererSpec(
-                          labelStyle: new charts.TextStyleSpec(
-                              fontSize: 10, color: charts.MaterialPalette.white),
-                          lineStyle: new charts.LineStyleSpec(
-                              color: charts.MaterialPalette.gray.shade700))),
-                  primaryMeasureAxis: new charts.NumericAxisSpec(
-                      renderSpec: new charts.GridlineRendererSpec(
-                          labelStyle: new charts.TextStyleSpec(
-                              fontSize: 10, color: charts.MaterialPalette.white),
-                          lineStyle: new charts.LineStyleSpec(
-                              color: charts.MaterialPalette.gray.shade700))),
+                child: charts.BarChart(
+                  _lastWeekData(),
                   animate: false,
-                ),
+                     domainAxis: new charts.OrdinalAxisSpec(
+          renderSpec: new charts.SmallTickRendererSpec(
+            
+
+              // Tick and Label styling here.
+              labelStyle: new charts.TextStyleSpec(
+                  fontSize: 10, // size in Pts.
+                  color: charts.MaterialPalette.white),
+
+              // Change the line colors to match text color.
+              lineStyle: new charts.LineStyleSpec(
+                  color: charts.MaterialPalette.gray.shade700))),
+
+      /// Assign a custom style for the measure axis.
+      primaryMeasureAxis: new charts.NumericAxisSpec(
+         tickFormatterSpec: new charts.BasicNumericTickFormatterSpec.fromNumberFormat(
+                      NumberFormat.compact()
+                    ),
+          renderSpec: new charts.GridlineRendererSpec(
+
+              // Tick and Label styling here.
+              labelStyle: new charts.TextStyleSpec(
+                  fontSize: 10, // size in Pts.
+                  color: charts.MaterialPalette.white),
+
+              // Change the line colors to match text color.
+              lineStyle: new charts.LineStyleSpec(
+                  color: charts.MaterialPalette.gray.shade700))),
+                      
+                
+                  defaultRenderer: charts.BarRendererConfig(
+
+                    cornerStrategy: const charts.ConstCornerStrategy(16)),
+                  
+
+               
+                )
               ),
               
             ],
@@ -294,96 +459,9 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+  
 
-  Widget deathsChart() {
-   return Card(
-      elevation: 8,
-      color:Theme.of(context).primaryColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: EdgeInsets.only(bottom:12),
-          child: Column(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.only(top:16,bottom: 8),
-                child: Center(child: Text("Total Deaths",style:TextStyle(fontWeight: FontWeight.bold, fontSize: 18)))),
-
-              Container(
-                height: chartHeight,
-                padding: EdgeInsets.all(12),
-                child: charts.TimeSeriesChart(
-                  _deathsData(),
-                  behaviors: [
-                    charts.PanAndZoomBehavior(),
-                  ],
-                  domainAxis: new charts.DateTimeAxisSpec(
-                      renderSpec: new charts.GridlineRendererSpec(
-                          labelStyle: new charts.TextStyleSpec(
-                              fontSize: 10, color: charts.MaterialPalette.white),
-                          lineStyle: new charts.LineStyleSpec(
-                              color: charts.MaterialPalette.gray.shade700))),
-                  primaryMeasureAxis: new charts.NumericAxisSpec(
-                      renderSpec: new charts.GridlineRendererSpec(
-                          labelStyle: new charts.TextStyleSpec(
-                              fontSize: 10, color: charts.MaterialPalette.white),
-                          lineStyle: new charts.LineStyleSpec(
-                              color: charts.MaterialPalette.gray.shade700))),
-                  animate: false,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget recoveredChart() {
-   return Card(
-      elevation: 8,
-      color: Theme.of(context).primaryColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: EdgeInsets.only(bottom:12),
-          child: Column(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.only(top:16,bottom: 8),
-                child: Center(child: Text("Total Recoveries",style:TextStyle(fontWeight: FontWeight.bold, fontSize: 18)))),
-
-              Container(
-                height: chartHeight,
-                padding: EdgeInsets.all(12),
-                child: charts.TimeSeriesChart(
-                  _recoveredData(),
-                  behaviors: [
-                    charts.PanAndZoomBehavior(),
-                  ],
-                  domainAxis: new charts.DateTimeAxisSpec(
-                      renderSpec: new charts.GridlineRendererSpec(
-                          labelStyle: new charts.TextStyleSpec(
-                              fontSize: 10, color: charts.MaterialPalette.white),
-                          lineStyle: new charts.LineStyleSpec(
-                              color: charts.MaterialPalette.gray.shade700))),
-                  primaryMeasureAxis: new charts.NumericAxisSpec(
-                      renderSpec: new charts.GridlineRendererSpec(
-                          labelStyle: new charts.TextStyleSpec(
-                              fontSize: 10, color: charts.MaterialPalette.white),
-                          lineStyle: new charts.LineStyleSpec(
-                              color: charts.MaterialPalette.gray.shade700))),
-                  animate: false,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+ 
 
   Widget _getLowerLayer() {
     double cardHeight = 140;
@@ -428,7 +506,7 @@ class _HomePageState extends State<HomePage> {
                               height: 8,
                             ),
                             Text(
-                              widget.model.globalData.total_cases.toString(),
+                             widget.model.globalData.total_cases.toString(),
                               style: TextStyle(fontSize: 28),
                             ),
                             SizedBox(
@@ -604,15 +682,36 @@ class _HomePageState extends State<HomePage> {
               SizedBox(
                 height: 12,
               ),
-              casesChart(),
+              weekChart(),
               SizedBox(
                 height: 12,
               ),
-              deathsChart(),
+             mostAffected(),
               SizedBox(
                 height: 12,
               ),
-              recoveredChart(),
+              TimeChart(
+                title:"Cases",
+                height: 400,
+                dataList:_casesData()
+                
+              ),
+              SizedBox(
+                height: 12,
+              ),
+               TimeChart(
+              title : "Deaths",
+              dataList: _deathsData(),
+              height: 400,
+            ),
+            SizedBox(
+              height: 12,
+            ),
+            TimeChart(
+              title : "Recovered",
+              dataList: _recoveredData(),
+              height: 400,
+            ),
               SizedBox(
                 height: 100,
               )
@@ -808,19 +907,11 @@ class _HomePageState extends State<HomePage> {
       );
     } else {
       return Container(
-        color: Theme.of(context).primaryColor,
+        color: Theme.of(context).primaryColorDark,
         child: Center(child: Text("Error")),
       );
     }
   }
 }
 
-class LinScale {
-  final int cases;
 
-  final String title;
-
-  final charts.Color color;
-
-  LinScale(this.cases, this.title, this.color);
-}
