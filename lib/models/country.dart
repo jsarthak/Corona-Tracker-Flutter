@@ -2,13 +2,13 @@ import 'package:corona_tracker/models/countryinfo.dart';
 
 class AffectedCountry {
   final String country;
-  final String cases;
-  final String todayCases;
-  final String todayDeaths;
-  final String deaths;
-  final String recovered;
-  final String active;
-  final String critical;
+  final int cases;
+  final int todayCases;
+  final int todayDeaths;
+  final int deaths;
+  final int recovered;
+  final int active;
+  final int critical;
   final String casesPerOneMillion;
   final String deathsPerOneMillion;
   final CountryInfo countryInfo;
@@ -28,13 +28,13 @@ class AffectedCountry {
   factory AffectedCountry.fromJson(Map<String, dynamic> json) {
     return AffectedCountry(
         country: json['country'],
-        cases: json['cases'].toString(),
-        todayCases: json['todayCases'].toString(),
-        todayDeaths: json['todayDeaths'].toString(),
-        deaths: json['deaths'].toString(),
-        recovered: json['recovered'].toString(),
-        active: json['active'].toString(),
-        critical: json['critical'].toString(),
+        cases: int.parse(json['cases'].toString()),
+        todayCases: int.parse(json['todayCases'].toString()),
+        todayDeaths: int.parse(json['todayDeaths'].toString()),
+        deaths: int.parse(json['deaths'].toString()),
+        recovered: int.parse(json['recovered'].toString()),
+        active: int.parse(json['active'].toString()),
+        critical: int.parse(json['critical'].toString()),
         casesPerOneMillion: json['casesPerOneMillion'].toString(),
         deathsPerOneMillion: json['deathsPerOneMillion'].toString(),
         countryInfo: CountryInfo.fromJson(json['countryInfo']));

@@ -16,7 +16,8 @@ mixin ConnectedModels on Model {
   bool _isLoadingCountryHistorical = false;
   bool _isLoadingHistorical = false;
   bool _isLoadingAffectedCountries = false;
-  
+
+  bool _hasError = false;
 
   String _selCountry;
 }
@@ -30,7 +31,9 @@ mixin GeneralStatsModel on ConnectedModels {
     return _globalData;
   }
 
-  
+  bool get hasError {
+    return _hasError;
+  }
 }
 
 mixin HistoricalData on ConnectedModels {
@@ -46,48 +49,50 @@ mixin HistoricalData on ConnectedModels {
     return _historicalGlobalData;
   }
 
-  List<HistoricalGlobalData> get historicalCountryData{
+  List<HistoricalGlobalData> get historicalCountryData {
     return _countryHistoricalData;
   }
 
-  Future<Null> fetchCountryHistoricalData(String countryName,{clearExisting = true}){
+  Future<Null> fetchCountryHistoricalData(String countryName,
+      {clearExisting = true}) {
     var formatter = new DateFormat('yyyy-MM-dd');
     String date = formatter.format(DateTime.now());
     _isLoadingCountryHistorical = true;
-    if (clearExisting){
-      _countryHistoricalData= [];
+    _hasError = false;
+    if (clearExisting) {
+      _countryHistoricalData = [];
     }
     notifyListeners();
-        String url = "https://covidapi.info/api/v1/country/$countryName/timeseries/2020-01-21/$date";
-        return http.get(url).then<Null>((http.Response response) async {
-     
-        final List<HistoricalGlobalData> historicalGlobalData1 = [];
+    String url =
+        "https://covidapi.info/api/v1/country/$countryName/timeseries/2020-01-21/$date";
+    return http.get(url).then<Null>((http.Response response) async {
+      final List<HistoricalGlobalData> historicalGlobalData1 = [];
       List<dynamic> historicalData = jsonDecode(response.body)['result'];
-      
+
       if (historicalData == null) {
         _isLoadingCountryHistorical = false;
         notifyListeners();
         return;
       }
-      for (Map<String, dynamic> h in historicalData){
-           final HistoricalGlobalData d = HistoricalGlobalData(confimed: h['confirmed'].toString(),
-        date: h['date'].toString(),
-        deaths: h['deaths'].toString(),
-        recovered: h['recovered'].toString());
+      for (Map<String, dynamic> h in historicalData) {
+        final HistoricalGlobalData d = HistoricalGlobalData(
+            confimed: h['confirmed'].toString(),
+            date: h['date'].toString(),
+            deaths: h['deaths'].toString(),
+            recovered: h['recovered'].toString());
         historicalGlobalData1.add(d);
-
       }
       _countryHistoricalData = historicalGlobalData1;
       _isLoadingCountryHistorical = false;
+      _hasError = false;
       notifyListeners();
-      
-    }).catchError((error){
- _isLoadingCountryHistorical = false;
+    }).catchError((error) {
+      _isLoadingCountryHistorical = false;
+      _hasError = true;
       notifyListeners();
       print(error);
       return;
-    }); 
-
+    });
   }
 
   Future<Null> fetchGlobalHistoricalData({clearExisting = true}) {
@@ -95,11 +100,11 @@ mixin HistoricalData on ConnectedModels {
     if (clearExisting) {
       _historicalGlobalData = [];
     }
+    _hasError = false;
     notifyListeners();
     String url = "https://covidapi.info/api/v1/global/count";
     return http.get(url).then<Null>((http.Response response) async {
-     
-        final List<HistoricalGlobalData> historicalGlobalData1 = [];
+      final List<HistoricalGlobalData> historicalGlobalData1 = [];
 
       Map<String, dynamic> historicalData = jsonDecode(response.body)['result'];
       if (historicalData == null) {
@@ -114,15 +119,15 @@ mixin HistoricalData on ConnectedModels {
 
       _historicalGlobalData = historicalGlobalData1;
       _isLoadingHistorical = false;
+      _hasError = false;
       notifyListeners();
-      
-    }).catchError((error){
- _isLoadingHistorical = false;
+    }).catchError((error) {
+      _hasError = true;
+      _isLoadingHistorical = false;
       notifyListeners();
       print(error);
       return;
     });
-    
   }
 }
 
@@ -143,6 +148,7 @@ mixin AffectedCountryModel on ConnectedModels {
 
   Future<Null> fetchAffectedCountries({clearExisting = true}) {
     _isLoadingAffectedCountries = true;
+    _hasError = false;
     if (clearExisting) {
       _affectedCountries = [];
     }
@@ -168,18 +174,15 @@ mixin AffectedCountryModel on ConnectedModels {
       int total_serious_cases = 0;
       for (Map<String, dynamic> d in affectedCountryData) {
         final AffectedCountry affectedCountry = AffectedCountry.fromJson(d);
-        total_cases = total_cases + int.parse(affectedCountry.cases);
-        total_deaths = total_deaths + int.parse(affectedCountry.deaths);
-        total_recovered =
-            total_recovered + int.parse(affectedCountry.recovered);
+        total_cases = total_cases + (affectedCountry.cases);
+        total_deaths = total_deaths + (affectedCountry.deaths);
+        total_recovered = total_recovered + (affectedCountry.recovered);
         total_new_cases_today =
-            total_new_cases_today + int.parse(affectedCountry.todayCases);
+            total_new_cases_today + (affectedCountry.todayCases);
         total_new_deaths_today =
-            total_new_deaths_today + int.parse(affectedCountry.todayDeaths);
-        total_active_cases =
-            total_active_cases + int.parse(affectedCountry.active);
-        total_serious_cases =
-            total_serious_cases + int.parse(affectedCountry.critical);
+            total_new_deaths_today + (affectedCountry.todayDeaths);
+        total_active_cases = total_active_cases + (affectedCountry.active);
+        total_serious_cases = total_serious_cases + (affectedCountry.critical);
 
         fetchedCountryList.add(affectedCountry);
       }
@@ -195,11 +198,12 @@ mixin AffectedCountryModel on ConnectedModels {
 
       _affectedCountries = fetchedCountryList;
       _isLoadingAffectedCountries = false;
+      _hasError = false;
       notifyListeners();
       _selCountry = null;
     }).catchError((error) {
       _isLoadingAffectedCountries = false;
-
+      _hasError = true;
       notifyListeners();
       print(error);
       return;

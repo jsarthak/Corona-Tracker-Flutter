@@ -32,7 +32,7 @@ class _CoronaAppState extends State<CoronaApp> {
     return ScopedModel<MainModel>(
       model: _model,
       child: MaterialApp(
-        title: "Corona Tracker",
+        title: "COVID-19 Tracker",
         theme: appThemeMain,
         home: HomePage(model: _model),
       ),
