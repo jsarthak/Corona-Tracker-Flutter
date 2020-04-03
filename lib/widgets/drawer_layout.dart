@@ -26,9 +26,12 @@ class DrawerLayout extends StatelessWidget {
                     SizedBox(
                       height: 24,
                     ),
-                    Image(
-                      height: 120,
-                      image: AssetImage("assets/launcher/launcher.png"),
+                    Hero(
+                      tag: 'icon',
+                      child: Image(
+                        height: 120,
+                        image: AssetImage("assets/launcher/launcher.png"),
+                      ),
                     ),
                     SizedBox(
                       height: 24,
@@ -94,28 +97,28 @@ class DrawerLayout extends StatelessWidget {
                       )),
                 ),
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  color: Theme.of(context).primaryColor,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: ListTile(
-                      leading: Icon(Icons.laptop_mac),
-                      title: Text('Support Development'),
-                      onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                          return SupportDevelopmentPage();
-                        }));
-                      },
-                    ),
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding:
+              //       const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              //   child: Card(
+              //     shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(8)),
+              //     color: Theme.of(context).primaryColor,
+              //     child: ClipRRect(
+              //       borderRadius: BorderRadius.circular(8),
+              //       child: ListTile(
+              //         leading: Icon(Icons.laptop_mac),
+              //         title: Text('Support Development'),
+              //         onTap: () {
+              //           Navigator.push(context,
+              //               MaterialPageRoute(builder: (context) {
+              //             return SupportDevelopmentPage();
+              //           }));
+              //         },
+              //       ),
+              //     ),
+              //   ),
+              // ),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

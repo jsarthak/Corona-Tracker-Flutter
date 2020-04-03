@@ -49,9 +49,12 @@ class InformationPage extends StatelessWidget {
           SizedBox(
             height: 24,
           ),
-          Image(
-            height: 120,
-            image: AssetImage("assets/launcher/launcher.png"),
+          Hero(
+            tag: 'icon',
+            child: Image(
+              height: 120,
+              image: AssetImage("assets/launcher/launcher.png"),
+            ),
           ),
           SizedBox(
             height: 24,
@@ -101,8 +104,7 @@ class InformationPage extends StatelessWidget {
               },
               itemCount: symptomsPages.length,
               itemWidth: MediaQuery.of(context).size.width * 0.8,
-              autoplay: true,
-              autoplayDisableOnInteraction: true,
+              autoplay: false,
               loop: false,
               layout: SwiperLayout.STACK,
             ),
@@ -133,8 +135,7 @@ class InformationPage extends StatelessWidget {
               },
               itemCount: preventionPages.length,
               itemWidth: MediaQuery.of(context).size.width * 0.8,
-              autoplay: true,
-              autoplayDisableOnInteraction: true,
+              autoplay: false,
               loop: false,
               layout: SwiperLayout.STACK,
             ),

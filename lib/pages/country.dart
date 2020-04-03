@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:corona_tracker/models/country.dart';
 import 'package:corona_tracker/models/linscale.dart';
 import 'package:corona_tracker/scoped_models/main.dart';
-import 'package:corona_tracker/widgets/piechart.dart';
 import 'package:corona_tracker/widgets/timechart.dart';
 import 'package:flutter/material.dart';
 import 'package:corona_tracker/models/historical.dart';
@@ -192,7 +191,6 @@ class _CountryPageState extends State<CountryPage> {
             widget.affectedCountry.country,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          centerTitle: true,
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
@@ -429,7 +427,46 @@ class _CountryPageState extends State<CountryPage> {
               SizedBox(
                 height: 12,
               ),
-              PieChartData(dataList: _pieData()),
+              Card(
+                  elevation: 8,
+                  color: Theme.of(context).primaryColor,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        height: 420,
+                        padding: EdgeInsets.all(24),
+                        child: new charts.PieChart(_pieData(),
+                            animate: false,
+                            defaultInteractions: false,
+                            behaviors: [
+                              new charts.DatumLegend(
+                                  position: charts.BehaviorPosition.bottom,
+                                  desiredMaxRows: 3,
+                                  desiredMaxColumns: 2,
+                                  cellPadding: EdgeInsets.symmetric(
+                                      vertical: 4, horizontal: 8),
+                                  outsideJustification: charts
+                                      .OutsideJustification.middleDrawArea),
+                            ],
+                            defaultRenderer: new charts.ArcRendererConfig(
+                                arcWidth: 75,
+                                strokeWidthPx: 1,
+                                arcRendererDecorators: [
+                                  charts.ArcLabelDecorator(
+                                    labelPosition: charts.ArcLabelPosition.auto,
+                                    leaderLineColor:
+                                        charts.MaterialPalette.white,
+                                    outsideLabelStyleSpec: charts.TextStyleSpec(
+                                        fontSize: 12,
+                                        color: charts.MaterialPalette.white),
+                                    insideLabelStyleSpec: charts.TextStyleSpec(
+                                        fontSize: 12,
+                                        color: charts.MaterialPalette.white),
+                                  )
+                                ])),
+                      ))),
               SizedBox(
                 height: 12,
               ),

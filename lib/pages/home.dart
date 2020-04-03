@@ -5,7 +5,6 @@ import 'package:corona_tracker/models/linscale.dart';
 import 'package:corona_tracker/pages/country.dart';
 import 'package:corona_tracker/scoped_models/main.dart';
 import 'package:corona_tracker/widgets/drawer_layout.dart';
-import 'package:corona_tracker/widgets/piechart.dart';
 import 'package:corona_tracker/widgets/timechart.dart';
 import 'package:corona_tracker/widgets/week_chart.dart';
 import 'package:flutter/material.dart';
@@ -131,6 +130,13 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<RefreshIndicatorState> _refreshKey =
       new GlobalKey<RefreshIndicatorState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    widget.model.initPlatformState();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<MainModel>(
@@ -224,7 +230,6 @@ class _HomePageState extends State<HomePage> {
                   child: charts.BarChart(
                     _mostAffectedCountry(),
                     animate: false,
-                    defaultInteractions: false,
                     domainAxis: new charts.OrdinalAxisSpec(
                         renderSpec: new charts.SmallTickRendererSpec(
                             labelStyle: new charts.TextStyleSpec(
@@ -253,9 +258,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget myCountrySummary() {
-    final Locale deviceLocale = Localizations.localeOf(context);
-
-    String countryCode = deviceLocale.countryCode.toString();
+    final String countryCode = widget.model.platformVersion;
     AffectedCountry myCountry;
     for (AffectedCountry country in widget.model.allAffectedCounrties) {
       if (country.countryInfo.iso2 == countryCode) {
@@ -280,8 +283,8 @@ class _HomePageState extends State<HomePage> {
               children: <Widget>[
                 CachedNetworkImage(
                   imageUrl: myCountry.countryInfo.flag,
-                  height: 36,
-                  width: 36,
+                  height: 32,
+                  width: 32,
                 ),
                 SizedBox(
                   width: 12,
@@ -293,178 +296,193 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          Card(
-              color: Theme.of(context).primaryColor,
-              elevation: 8.0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                  child: Column(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(NumberFormat.decimalPattern()
-                                .format(myCountry.cases) +
-                            ' infections'),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0, vertical: 4),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Container(
-                                height: linHeight,
-                                decoration: BoxDecoration(
-                                    color: Colors.blue,
-                                    borderRadius: BorderRadius.circular(6)),
-                              ),
-                              flex: a,
-                            ),
-                            SizedBox(width: 4),
-                            Expanded(
-                              child: Container(
-                                height: linHeight,
-                                decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    borderRadius: BorderRadius.circular(6)),
-                              ),
-                              flex: r,
-                            ),
-                            SizedBox(width: 4),
-                            Expanded(
-                              child: Container(
-                                height: linHeight,
-                                decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.circular(6)),
-                              ),
-                              flex: d,
-                            ),
-                            SizedBox(width: 4),
-                            Expanded(
-                              child: Container(
-                                height: linHeight,
-                                decoration: BoxDecoration(
-                                    color: Colors.yellow,
-                                    borderRadius: BorderRadius.circular(6)),
-                              ),
-                              flex: c,
-                            ),
-                          ],
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                  maintainState: true,
+                  builder: (BuildContext context) {
+                    return CountryPage(widget.model, myCountry);
+                  }));
+            },
+            child: Card(
+                color: Theme.of(context).primaryColor,
+                elevation: 8.0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                    child: Column(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                              NumberFormat.decimalPattern()
+                                      .format(myCountry.cases) +
+                                  ' infections',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              flex: 0,
-                              child: Container(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 4),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Container(
                                   height: linHeight,
-                                  width: linHeight,
                                   decoration: BoxDecoration(
                                       color: Colors.blue,
-                                      borderRadius: BorderRadius.circular(6))),
-                            ),
-                            SizedBox(
-                              width: 12,
-                            ),
-                            Expanded(flex: 1, child: Text('Active')),
-                            Expanded(
-                              flex: 0,
-                              child: Text(NumberFormat.decimalPattern()
-                                  .format(myCountry.active)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              flex: 0,
-                              child: Container(
+                                      borderRadius: BorderRadius.circular(6)),
+                                ),
+                                flex: a,
+                              ),
+                              SizedBox(width: 4),
+                              Expanded(
+                                child: Container(
                                   height: linHeight,
-                                  width: linHeight,
                                   decoration: BoxDecoration(
                                       color: Colors.green,
-                                      borderRadius: BorderRadius.circular(6))),
-                            ),
-                            SizedBox(
-                              width: 12,
-                            ),
-                            Expanded(flex: 1, child: Text('Recovered')),
-                            Expanded(
-                              flex: 0,
-                              child: Text(NumberFormat.decimalPattern()
-                                  .format(myCountry.recovered)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              flex: 0,
-                              child: Container(
+                                      borderRadius: BorderRadius.circular(6)),
+                                ),
+                                flex: r,
+                              ),
+                              SizedBox(width: 4),
+                              Expanded(
+                                child: Container(
                                   height: linHeight,
-                                  width: linHeight,
                                   decoration: BoxDecoration(
                                       color: Colors.red,
-                                      borderRadius: BorderRadius.circular(6))),
-                            ),
-                            SizedBox(
-                              width: 12,
-                            ),
-                            Expanded(flex: 1, child: Text('Deaths')),
-                            Expanded(
-                              flex: 0,
-                              child: Text(NumberFormat.decimalPattern()
-                                  .format(myCountry.deaths)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              flex: 0,
-                              child: Container(
+                                      borderRadius: BorderRadius.circular(6)),
+                                ),
+                                flex: d,
+                              ),
+                              SizedBox(width: 4),
+                              Expanded(
+                                child: Container(
                                   height: linHeight,
-                                  width: linHeight,
                                   decoration: BoxDecoration(
                                       color: Colors.yellow,
-                                      borderRadius: BorderRadius.circular(6))),
-                            ),
-                            SizedBox(
-                              width: 12,
-                            ),
-                            Expanded(flex: 1, child: Text('Critical')),
-                            Expanded(
-                              flex: 0,
-                              child: Text(NumberFormat.decimalPattern()
-                                  .format(myCountry.critical)),
-                            ),
-                          ],
+                                      borderRadius: BorderRadius.circular(6)),
+                                ),
+                                flex: c,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                flex: 0,
+                                child: Container(
+                                    height: linHeight,
+                                    width: linHeight,
+                                    decoration: BoxDecoration(
+                                        color: Colors.blue,
+                                        borderRadius:
+                                            BorderRadius.circular(6))),
+                              ),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              Expanded(flex: 1, child: Text('Active')),
+                              Expanded(
+                                flex: 0,
+                                child: Text(NumberFormat.decimalPattern()
+                                    .format(myCountry.active)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                flex: 0,
+                                child: Container(
+                                    height: linHeight,
+                                    width: linHeight,
+                                    decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius:
+                                            BorderRadius.circular(6))),
+                              ),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              Expanded(flex: 1, child: Text('Recovered')),
+                              Expanded(
+                                flex: 0,
+                                child: Text(NumberFormat.decimalPattern()
+                                    .format(myCountry.recovered)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                flex: 0,
+                                child: Container(
+                                    height: linHeight,
+                                    width: linHeight,
+                                    decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        borderRadius:
+                                            BorderRadius.circular(6))),
+                              ),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              Expanded(flex: 1, child: Text('Deaths')),
+                              Expanded(
+                                flex: 0,
+                                child: Text(NumberFormat.decimalPattern()
+                                    .format(myCountry.deaths)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                flex: 0,
+                                child: Container(
+                                    height: linHeight,
+                                    width: linHeight,
+                                    decoration: BoxDecoration(
+                                        color: Colors.yellow,
+                                        borderRadius:
+                                            BorderRadius.circular(6))),
+                              ),
+                              SizedBox(
+                                width: 12,
+                              ),
+                              Expanded(flex: 1, child: Text('Critical')),
+                              Expanded(
+                                flex: 0,
+                                child: Text(NumberFormat.decimalPattern()
+                                    .format(myCountry.critical)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              )),
+                )),
+          ),
         ],
       );
     }
@@ -483,255 +501,280 @@ class _HomePageState extends State<HomePage> {
     } else if (widget.model.hasError) {
       return Container(color: Theme.of(context).primaryColorDark);
     } else {
-      return Center(
-        child: Container(
-          decoration: BoxDecoration(color: Theme.of(context).primaryColorDark),
-          child: Container(
-            child: ListView(
-              padding: EdgeInsets.all(8),
-              children: <Widget>[
-                myCountrySummary(),
-                SizedBox(
-                  height: 16,
-                ),
-                Text('Global Statistics',
-                    textAlign: TextAlign.center,
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                SizedBox(
-                  height: 16,
-                ),
-                Row(children: [
-                  Expanded(
-                    flex: 1,
-                    child: Card(
-                      color: Color.fromARGB(255, 58, 161, 197),
-                      elevation: 8.0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(borderRadius)),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        child: Container(
-                          color: Colors.blue.shade600,
-                          height: cardHeight,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "Infections",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              SizedBox(
-                                height: 8,
-                              ),
-                              Text(
-                                NumberFormat.decimalPattern().format(
-                                    widget.model.globalData.total_cases),
-                                style: TextStyle(fontSize: 28),
-                              ),
-                              SizedBox(
-                                height: 8,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Icon(
-                                    widget.model.globalData
-                                                .total_new_cases_today >
-                                            0
-                                        ? Icons.trending_up
-                                        : Icons.trending_down,
-                                    size: 18,
-                                  ),
-                                  SizedBox(
-                                    width: 8,
-                                  ),
-                                  Text(NumberFormat.decimalPattern().format(
-                                          widget.model.globalData
-                                              .total_new_cases_today) +
-                                      ' Today'),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 4,
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Card(
-                      color: Color.fromARGB(255, 58, 161, 197),
-                      elevation: 8.0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(borderRadius)),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        child: Container(
-                          color: Colors.red.shade800,
-                          height: cardHeight,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "Deaths",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              SizedBox(
-                                height: 8,
-                              ),
-                              Text(
-                                NumberFormat.decimalPattern().format(
-                                    widget.model.globalData.total_deaths),
-                                style: TextStyle(fontSize: 28),
-                              ),
-                              SizedBox(
-                                height: 8,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Icon(
-                                    widget.model.globalData
-                                                .total_new_deaths_today >
-                                            0
-                                        ? Icons.trending_up
-                                        : Icons.trending_down,
-                                    size: 18,
-                                  ),
-                                  SizedBox(
-                                    width: 8,
-                                  ),
-                                  Text(NumberFormat.decimalPattern()
-                                          .format(widget.model.globalData
-                                              .total_new_deaths_today)
-                                          .toString() +
-                                      ' Today'),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ]),
-                SizedBox(
-                  height: 8,
-                ),
-                Row(children: [
-                  Expanded(
-                    flex: 1,
-                    child: Card(
-                      color: Color.fromARGB(255, 58, 161, 197),
-                      elevation: 8.0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(borderRadius)),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        child: Container(
-                          color: Colors.green.shade600,
-                          height: 100,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "Recovered",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              SizedBox(
-                                height: 8,
-                              ),
-                              Text(
-                                NumberFormat.decimalPattern().format(
-                                    widget.model.globalData.total_recovered),
-                                style: TextStyle(fontSize: 28),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 4,
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Card(
-                      color: Color.fromARGB(255, 58, 161, 197),
-                      elevation: 8.0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(borderRadius)),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        child: Container(
-                          color: Colors.yellow.shade800,
-                          height: 100,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "Critical",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              SizedBox(
-                                height: 8,
-                              ),
-                              Text(
-                                NumberFormat.decimalPattern().format(widget
-                                    .model.globalData.total_serious_cases),
-                                style: TextStyle(fontSize: 28),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ]),
-                SizedBox(
-                  height: 12,
-                ),
-                PieChartData(dataList: _pieData()),
-                SizedBox(
-                  height: 12,
-                ),
-                WeekChart(
-                  data: _lastWeekData(),
-                ),
-                SizedBox(
-                  height: 12,
-                ),
-                mostAffected(),
-                SizedBox(
-                  height: 12,
-                ),
-                TimeChart(
-                    key: GlobalKey(),
-                    title: 'Historical',
-                    height: 400,
-                    dataList: _casesData()),
-                SizedBox(
-                  height: 100,
-                )
-              ],
-            ),
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: ListView(cacheExtent: 15, children: [
+          myCountrySummary(),
+          SizedBox(
+            height: 16,
           ),
-        ),
+          Text('Global Statistics',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          SizedBox(
+            height: 16,
+          ),
+          Row(children: [
+            Expanded(
+              flex: 1,
+              child: Card(
+                color: Color.fromARGB(255, 58, 161, 197),
+                elevation: 8.0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(borderRadius)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: Container(
+                    color: Colors.blue.shade600,
+                    height: cardHeight,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Infections",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Text(
+                          NumberFormat.decimalPattern()
+                              .format(widget.model.globalData.total_cases),
+                          style: TextStyle(fontSize: 28),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(
+                              widget.model.globalData.total_new_cases_today > 0
+                                  ? Icons.trending_up
+                                  : Icons.trending_down,
+                              size: 18,
+                            ),
+                            SizedBox(
+                              width: 8,
+                            ),
+                            Text(NumberFormat.decimalPattern().format(widget
+                                    .model.globalData.total_new_cases_today) +
+                                ' Today'),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 4,
+            ),
+            Expanded(
+              flex: 1,
+              child: Card(
+                color: Color.fromARGB(255, 58, 161, 197),
+                elevation: 8.0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(borderRadius)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: Container(
+                    color: Colors.red.shade800,
+                    height: cardHeight,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Deaths",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Text(
+                          NumberFormat.decimalPattern()
+                              .format(widget.model.globalData.total_deaths),
+                          style: TextStyle(fontSize: 28),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(
+                              widget.model.globalData.total_new_deaths_today > 0
+                                  ? Icons.trending_up
+                                  : Icons.trending_down,
+                              size: 18,
+                            ),
+                            SizedBox(
+                              width: 8,
+                            ),
+                            Text(NumberFormat.decimalPattern()
+                                    .format(widget.model.globalData
+                                        .total_new_deaths_today)
+                                    .toString() +
+                                ' Today'),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+          SizedBox(
+            height: 8,
+          ),
+          Row(children: [
+            Expanded(
+              flex: 1,
+              child: Card(
+                color: Color.fromARGB(255, 58, 161, 197),
+                elevation: 8.0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(borderRadius)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: Container(
+                    color: Colors.green.shade600,
+                    height: 100,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Recovered",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Text(
+                          NumberFormat.decimalPattern()
+                              .format(widget.model.globalData.total_recovered),
+                          style: TextStyle(fontSize: 28),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 4,
+            ),
+            Expanded(
+              flex: 1,
+              child: Card(
+                color: Color.fromARGB(255, 58, 161, 197),
+                elevation: 8.0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(borderRadius)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: Container(
+                    color: Colors.yellow.shade800,
+                    height: 100,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Critical",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Text(
+                          NumberFormat.decimalPattern().format(
+                              widget.model.globalData.total_serious_cases),
+                          style: TextStyle(fontSize: 28),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+          SizedBox(
+            height: 12,
+          ),
+          Card(
+              elevation: 8,
+              color: Theme.of(context).primaryColor,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    height: 420,
+                    padding: EdgeInsets.all(24),
+                    child: new charts.PieChart(_pieData(),
+                        animate: false,
+                        defaultInteractions: false,
+                        behaviors: [
+                          new charts.DatumLegend(
+                              position: charts.BehaviorPosition.bottom,
+                              desiredMaxRows: 3,
+                              desiredMaxColumns: 2,
+                              cellPadding: EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 8),
+                              outsideJustification:
+                                  charts.OutsideJustification.middleDrawArea),
+                        ],
+                        defaultRenderer: new charts.ArcRendererConfig(
+                            arcWidth: 75,
+                            strokeWidthPx: 1,
+                            arcRendererDecorators: [
+                              charts.ArcLabelDecorator(
+                                labelPosition: charts.ArcLabelPosition.auto,
+                                leaderLineColor: charts.MaterialPalette.white,
+                                outsideLabelStyleSpec: charts.TextStyleSpec(
+                                    fontSize: 12,
+                                    color: charts.MaterialPalette.white),
+                                insideLabelStyleSpec: charts.TextStyleSpec(
+                                    fontSize: 12,
+                                    color: charts.MaterialPalette.white),
+                              )
+                            ])),
+                  ))),
+          SizedBox(
+            height: 12,
+          ),
+          WeekChart(
+            data: _lastWeekData(),
+          ),
+          SizedBox(
+            height: 12,
+          ),
+          mostAffected(),
+          SizedBox(
+            height: 12,
+          ),
+          TimeChart(
+              key: GlobalKey(),
+              title: 'Historical',
+              height: 400,
+              dataList: _casesData()),
+          SizedBox(
+            height: 100,
+          )
+        ]),
       );
     }
   }

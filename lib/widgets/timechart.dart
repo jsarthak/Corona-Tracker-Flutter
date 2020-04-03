@@ -40,15 +40,50 @@ class TimeChartState extends State<TimeChart> {
       Container(
           height: widget.height,
           padding: EdgeInsets.all(8),
-          child: _buildTimeSeriesWidget())
+          child: charts.TimeSeriesChart(
+            widget.dataList,
+            defaultInteractions: true,
+            domainAxis: new charts.DateTimeAxisSpec(
+                renderSpec: new charts.GridlineRendererSpec(
+                    labelStyle: new charts.TextStyleSpec(
+                        fontSize: 10, color: charts.MaterialPalette.white),
+                    lineStyle: new charts.LineStyleSpec(
+                        color: charts.MaterialPalette.gray.shade700))),
+            behaviors: [
+              new charts.SeriesLegend(),
+              new charts.PanAndZoomBehavior(),
+            ],
+            selectionModels: [
+              new charts.SelectionModelConfig(
+                  type: charts.SelectionModelType.info,
+                  changedListener: onSelectionChanged)
+            ],
+            primaryMeasureAxis: new charts.NumericAxisSpec(
+                tickFormatterSpec:
+                    new charts.BasicNumericTickFormatterSpec.fromNumberFormat(
+                        NumberFormat.compact()),
+                renderSpec: new charts.GridlineRendererSpec(
+                    labelStyle: new charts.TextStyleSpec(
+                        fontSize: 10, color: charts.MaterialPalette.white),
+                    lineStyle: new charts.LineStyleSpec(
+                        color: charts.MaterialPalette.gray.shade700))),
+            animate: false,
+          ))
     ];
     if (_time != null) {
       children.add(new Padding(
-          padding: new EdgeInsets.only(top: 5.0),
-          child: new Text(formatter.format(_time))));
+          padding: new EdgeInsets.only(top: 6.0, bottom: 6),
+          child: new Text(
+            formatter.format(_time),
+            style: TextStyle(fontWeight: FontWeight.bold),
+          )));
     }
     _measures?.forEach((String series, String value) {
-      children.add(new Text('${series}: ${value}'));
+      children.add(Padding(
+        padding: const EdgeInsets.all(2.0),
+        child: new Text(
+            '${series}: ${NumberFormat.decimalPattern().format(int.parse(value))}'),
+      ));
     });
     return Card(
       elevation: 8,
@@ -57,7 +92,7 @@ class TimeChartState extends State<TimeChart> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: EdgeInsets.only(bottom: 12),
+          padding: EdgeInsets.only(bottom: 16),
           child: Column(children: children),
         ),
       ),
@@ -84,37 +119,5 @@ class TimeChartState extends State<TimeChart> {
       _time = DateTime.parse(time);
       _measures = measures;
     });
-  }
-
-  Widget _buildTimeSeriesWidget() {
-    return charts.TimeSeriesChart(
-      widget.dataList,
-      defaultInteractions: true,
-      domainAxis: new charts.DateTimeAxisSpec(
-          renderSpec: new charts.GridlineRendererSpec(
-              labelStyle: new charts.TextStyleSpec(
-                  fontSize: 10, color: charts.MaterialPalette.white),
-              lineStyle: new charts.LineStyleSpec(
-                  color: charts.MaterialPalette.gray.shade700))),
-      behaviors: [
-        new charts.SeriesLegend(),
-        new charts.PanAndZoomBehavior(),
-      ],
-      selectionModels: [
-        new charts.SelectionModelConfig(
-            type: charts.SelectionModelType.info,
-            changedListener: onSelectionChanged)
-      ],
-      primaryMeasureAxis: new charts.NumericAxisSpec(
-          tickFormatterSpec:
-              new charts.BasicNumericTickFormatterSpec.fromNumberFormat(
-                  NumberFormat.compact()),
-          renderSpec: new charts.GridlineRendererSpec(
-              labelStyle: new charts.TextStyleSpec(
-                  fontSize: 10, color: charts.MaterialPalette.white),
-              lineStyle: new charts.LineStyleSpec(
-                  color: charts.MaterialPalette.gray.shade700))),
-      animate: false,
-    );
   }
 }

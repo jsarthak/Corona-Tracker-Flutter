@@ -31,7 +31,6 @@ class WeekChart extends StatelessWidget {
                   padding: EdgeInsets.all(12),
                   child: charts.BarChart(
                     data,
-                    defaultInteractions: false,
                     animate: false,
                     domainAxis: new charts.OrdinalAxisSpec(
                         renderSpec: new charts.SmallTickRendererSpec(

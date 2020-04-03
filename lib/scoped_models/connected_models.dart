@@ -1,5 +1,6 @@
 import 'package:corona_tracker/models/global.dart';
 import 'package:corona_tracker/models/historical.dart';
+import 'package:flutter_sim_country_code/flutter_sim_country_code.dart';
 import 'package:intl/intl.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:http/http.dart' as http;
@@ -13,6 +14,7 @@ mixin ConnectedModels on Model {
   List<HistoricalGlobalData> _historicalGlobalData = [];
   List<HistoricalGlobalData> _countryHistoricalData = [];
   GlobalData _globalData;
+  String _platformVersion;
   bool _isLoadingCountryHistorical = false;
   bool _isLoadingHistorical = false;
   bool _isLoadingAffectedCountries = false;
@@ -33,6 +35,20 @@ mixin GeneralStatsModel on ConnectedModels {
 
   bool get hasError {
     return _hasError;
+  }
+
+  Future<void> initPlatformState() async {
+    try {
+      _platformVersion = await FlutterSimCountryCode.simCountryCode;
+    } catch (e) {
+      print(e);
+    }
+    print(_platformVersion);
+    notifyListeners();
+  }
+
+  String get platformVersion {
+    return _platformVersion;
   }
 }
 
