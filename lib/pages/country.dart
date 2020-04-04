@@ -52,35 +52,39 @@ class _CountryPageState extends State<CountryPage> {
 
   List<charts.Series<HistoricalGlobalData, String>> _lastWeekData() {
     int l = widget.model.historicalCountryData.length;
-    List<HistoricalGlobalData> lastWeek = [];
-    for (int i = 0; i < 7; i++) {
-      HistoricalGlobalData d1 = widget.model.historicalCountryData[l - 1 - i];
-      HistoricalGlobalData d2 = widget.model.historicalCountryData[l - 2 - i];
+    if (l > 0) {
+      List<HistoricalGlobalData> lastWeek = [];
+      for (int i = 0; i < 14; i++) {
+        HistoricalGlobalData d1 = widget.model.historicalCountryData[l - 1 - i];
+        HistoricalGlobalData d2 = widget.model.historicalCountryData[l - 2 - i];
 
-      int n = int.parse(d1.confimed);
-      int r = int.parse(d2.confimed);
-      int c = (n - r);
+        int n = int.parse(d1.confimed);
+        int r = int.parse(d2.confimed);
+        int c = (n - r);
 
-      HistoricalGlobalData d = HistoricalGlobalData(
-          confimed: c.toString(),
-          date: d1.date,
-          recovered: d1.recovered,
-          deaths: d1.deaths);
+        HistoricalGlobalData d = HistoricalGlobalData(
+            confimed: c.toString(),
+            date: d1.date,
+            recovered: d1.recovered,
+            deaths: d1.deaths);
 
-      lastWeek.add(d);
+        lastWeek.add(d);
+      }
+
+      List<HistoricalGlobalData> lastWeek2 = lastWeek.reversed.toList();
+      var formatter = new DateFormat('MMM dd');
+      return [
+        new charts.Series(
+            id: "lastWeek_C",
+            data: lastWeek2,
+            domainFn: (HistoricalGlobalData h, _) =>
+                formatter.format(DateTime.parse(h.date)),
+            colorFn: (HistoricalGlobalData h, _) =>
+                charts.MaterialPalette.blue.shadeDefault,
+            measureFn: (HistoricalGlobalData h, _) => int.parse(h.confimed)),
+      ];
     }
-    List<HistoricalGlobalData> lastWeek2 = lastWeek.reversed.toList();
-    var formatter = new DateFormat('MMM dd');
-    return [
-      new charts.Series(
-          id: "lastWeek_C",
-          data: lastWeek2,
-          domainFn: (HistoricalGlobalData h, _) =>
-              formatter.format(DateTime.parse(h.date)),
-          colorFn: (HistoricalGlobalData h, _) =>
-              charts.MaterialPalette.blue.shadeDefault,
-          measureFn: (HistoricalGlobalData h, _) => int.parse(h.confimed)),
-    ];
+    return null;
   }
 
   List<charts.Series<LinScale, String>> _pieData() {
@@ -117,64 +121,73 @@ class _CountryPageState extends State<CountryPage> {
   double chartHeight = 360;
 
   Widget weekChart() {
-    return Card(
-      elevation: 8,
-      color: Theme.of(context).primaryColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: EdgeInsets.only(bottom: 12),
-          child: Column(
-            children: <Widget>[
-              Container(
-                  padding: EdgeInsets.only(top: 16, bottom: 8),
-                  child: Center(
-                      child: Text("Past 7 days",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18)))),
-              Container(
-                  height: 240,
-                  padding: EdgeInsets.all(12),
-                  child: charts.BarChart(
-                    _lastWeekData(),
-                    animate: false,
-                    domainAxis: new charts.OrdinalAxisSpec(
-                        renderSpec: new charts.SmallTickRendererSpec(
+    return _lastWeekData() == null
+        ? Container()
+        : Card(
+            elevation: 8,
+            color: Theme.of(context).primaryColor,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                        padding: EdgeInsets.only(top: 16, bottom: 8),
+                        child: Center(
+                            child: Text("Past 14 days",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18)))),
+                    Container(
+                        height: 240,
+                        padding: EdgeInsets.all(12),
+                        child: charts.BarChart(
+                          _lastWeekData(),
+                          animate: false,
 
-                            // Tick and Label styling here.
-                            labelStyle: new charts.TextStyleSpec(
-                                fontSize: 10, // size in Pts.
-                                color: charts.MaterialPalette.white),
+                          domainAxis: new charts.OrdinalAxisSpec(
+                              renderSpec: new charts.SmallTickRendererSpec(
+                                  labelRotation: 45,
 
-                            // Change the line colors to match text color.
-                            lineStyle: new charts.LineStyleSpec(
-                                color: charts.MaterialPalette.gray.shade700))),
+                                  // Tick and Label styling here.
+                                  labelStyle: new charts.TextStyleSpec(
+                                      fontSize: 10, // size in Pts.
+                                      color: charts.MaterialPalette.white),
 
-                    /// Assign a custom style for the measure axis.
-                    primaryMeasureAxis: new charts.NumericAxisSpec(
-                        tickFormatterSpec: new charts
-                                .BasicNumericTickFormatterSpec.fromNumberFormat(
-                            NumberFormat.compact()),
-                        renderSpec: new charts.GridlineRendererSpec(
+                                  // Change the line colors to match text color.
+                                  lineStyle: new charts.LineStyleSpec(
+                                      color: charts
+                                          .MaterialPalette.gray.shade700))),
 
-                            // Tick and Label styling here.
-                            labelStyle: new charts.TextStyleSpec(
-                                fontSize: 10, // size in Pts.
-                                color: charts.MaterialPalette.white),
+                          /// Assign a custom style for the measure axis.
+                          primaryMeasureAxis: new charts.NumericAxisSpec(
+                              tickFormatterSpec: new charts
+                                      .BasicNumericTickFormatterSpec.fromNumberFormat(
+                                  NumberFormat.compact()),
+                              renderSpec: new charts.GridlineRendererSpec(
 
-                            // Change the line colors to match text color.
-                            lineStyle: new charts.LineStyleSpec(
-                                color: charts.MaterialPalette.gray.shade700))),
+                                  // Tick and Label styling here.
+                                  labelStyle: new charts.TextStyleSpec(
+                                      fontSize: 10, // size in Pts.
+                                      color: charts.MaterialPalette.white),
 
-                    defaultRenderer: charts.BarRendererConfig(
-                        cornerStrategy: const charts.ConstCornerStrategy(16)),
-                  )),
-            ],
-          ),
-        ),
-      ),
-    );
+                                  // Change the line colors to match text color.
+                                  lineStyle: new charts.LineStyleSpec(
+                                      color: charts
+                                          .MaterialPalette.gray.shade700))),
+
+                          defaultRenderer: charts.BarRendererConfig(
+                              cornerStrategy:
+                                  const charts.ConstCornerStrategy(16)),
+                        )),
+                  ],
+                ),
+              ),
+            ),
+          );
   }
 
   double cardHeight = 140;
@@ -474,11 +487,13 @@ class _CountryPageState extends State<CountryPage> {
               SizedBox(
                 height: 12,
               ),
-              TimeChart(
-                title: "Historical",
-                dataList: _casesData(),
-                height: 400,
-              ),
+              widget.model.historicalCountryData.length > 0
+                  ? TimeChart(
+                      title: "Historical",
+                      dataList: _casesData(),
+                      height: 400,
+                    )
+                  : Container(),
               SizedBox(
                 height: 100,
               )

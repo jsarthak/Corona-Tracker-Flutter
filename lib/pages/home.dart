@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   List<charts.Series<HistoricalGlobalData, String>> _lastWeekData() {
     int l = widget.model.historicalGlobalData.length;
     List<HistoricalGlobalData> lastWeek = [];
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 14; i++) {
       HistoricalGlobalData d1 = widget.model.historicalGlobalData[l - 1 - i];
       HistoricalGlobalData d2 = widget.model.historicalGlobalData[l - 2 - i];
 
@@ -91,7 +91,7 @@ class _HomePageState extends State<HomePage> {
 
   List<charts.Series<AffectedCountry, String>> _mostAffectedCountry() {
     List<AffectedCountry> mostAffected = [];
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 10; i++) {
       mostAffected.add(widget.model.allAffectedCounrties[i]);
     }
     return [
@@ -232,6 +232,7 @@ class _HomePageState extends State<HomePage> {
                     animate: false,
                     domainAxis: new charts.OrdinalAxisSpec(
                         renderSpec: new charts.SmallTickRendererSpec(
+                            labelRotation: 45,
                             labelStyle: new charts.TextStyleSpec(
                                 fontSize: 10,
                                 color: charts.MaterialPalette.white),

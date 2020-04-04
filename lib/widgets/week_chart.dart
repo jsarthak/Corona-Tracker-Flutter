@@ -23,7 +23,7 @@ class WeekChart extends StatelessWidget {
               Container(
                   padding: EdgeInsets.only(top: 16, bottom: 8),
                   child: Center(
-                      child: Text("Past 7 days",
+                      child: Text("Past 14 days",
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 18)))),
               Container(
@@ -34,6 +34,7 @@ class WeekChart extends StatelessWidget {
                     animate: false,
                     domainAxis: new charts.OrdinalAxisSpec(
                         renderSpec: new charts.SmallTickRendererSpec(
+                            labelRotation: 45,
                             labelStyle: new charts.TextStyleSpec(
                                 fontSize: 10, // size in Pts.
                                 color: charts.MaterialPalette.white),
